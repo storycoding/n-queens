@@ -60,17 +60,32 @@ window.countNRooksSolutions = function(n) {
 
 };
 
+//STRATEGY:
+
+ //try an L
+        // if destination of L = undefined
+          // continue
+        // else if destination = 1
+          // continue
+        // else if destination = 0
+          // collision test
+            // if true
+              // continue
+            //if false
+              //branch it
+              // toggle the destination (turn it into 1)
+              // find solution on that branch
+
+
 
 
 // return a matrix (an array of arrays) representing a single nxn chessboard, with n queens placed such that none of them can attack each other
 window.findNQueensSolution = function(n) {
-  var solution;
 
-  var board = new Board({'n': n});
-  var queenCount = 0;
-  
+  //how to make 8 different L's in an 2d array
   var L = [[1, 2], [2, 1], [2, -1], [1, -2], [-2, -1], [-1, -2], [-2, 1], [-1, 2]];
 
+  //takes in a location tuple, returns the result of adding L[i] to that tuple
   var lMaker = function(originTuple, i) {
     var destination = [];
 
@@ -81,95 +96,127 @@ window.findNQueensSolution = function(n) {
   };
 
 
+
+  //var initiation
+  var solution; // the array that is created at the end
+
+  var board = new Board({'n': n}); // our starting point
+  var queenCount = 0;
+  var history = []; // where we keep track of where we placed our queens in the current branch
+
+
+  
+ 
+
+
   //// Main Recursive Function ////
-  var findSolution = function(depth, lastQueen, nextMoveTuple) {
+  var findSolution = function(currentQueen, nextMoveTuple) {  
 
-    for (var i = depth; i < n; i++) { // consider n to be length of first row
-      var lastQueen = lastQueen || [0, i];
+    //stores the next move (tuple)
+    var possibleMoves = [];
 
-      var possibleMoves = [];
+    // If this is the first Queen
+    if (queenCount === 0) {
+      board.togglePiece(currentQueen[0], currentQueen[1]);
+      queenCount++;
 
-      // If this is the first Queen
-      if (queenCount === 0) {
-        board.togglePiece(lastQueen[0], lastQueen[1]);
-        queenCount++;
+    // If the current branch is not the very first branch place a queen down at the next move...
+    } else if (queenCount < n && queenCount > 0) {
+      board.togglePiece(nextMoveTuple[0], nextMoveTuple[1]);
+      queenCount++;
 
-      } else if (queenCount <= n && queenCount > 0) {
+      // if current queen is colliding with any of the previous queens
+      if (board.hasAnyQueensConflicts()) {
         board.togglePiece(nextMoveTuple[0], nextMoveTuple[1]);
-        queenCount++;
-
-        // if Collision
-        if (board.hasAnyQueensConflicts()) {
-          board.togglePiece(nextMoveTuple[0], nextMoveTuple[1]);
-          queenCount--;
-          return;
-        }
-
-        // lastQueen = [newMoveTuple]
-        lastQueen = nextMoveTuple;
-
-      } else if (queenCount > n) {
-        return true;
+        queenCount--;
+        return;
       }
 
-      //// Calculate and save all possible valid moves ////
-      for (var j = 0; j < 8; j++) {
-        var destination = lMaker(lastQueen, j);
-        
-        if ((destination[0] >= n || destination[0] < 0) ||
-             destination[1] >= n || destination[1] < 0) {
-          continue;
-        } else if (destination[0] === lastQueen[0] && destination[1] === lastQueen[1]) {
-          continue;
-        } else {
-          possibleMoves.push(destination);
-        }
-      }
-        //try an L
-          // if destination of L = undefined
-            // continue
-          // else if destination = 1
-            // continue
-          // else if destination = 0
-            // collision test
-              // if true
-                // continue
-              //if false
-                //branch it
-                // toggle the destination (turn it into 1)
-                // find solution on that branch
+      // last queen becomes the next move tuple
+      currentQueen = nextMoveTuple;
 
 
-      for (var k = 0; k < possibleMoves.length; k++) {
-        // This is where the DECISION BRANCHING happens :)
-        findSolution(depth + 1, lastQueen, possibleMoves[k]);
-      }
-
-  // push the coordinate tuple to possibleMoves
-      // for amount of solutions available
-        // findSolution(currentQueenTuple, nextMoveTuple)
+    } else if (queenCount = n) {
+      return true;
     }
-    
+
+
+
+    //// Calculate and save all possible valid moves ////
+    for (var j = 0; j < 8; j++) {
+      var destination = lMaker(currentQueen, j);
+      
+      if ((destination[0] >= n || destination[0] < 0) ||
+           destination[1] >= n || destination[1] < 0) {
+        continue;
+
+      } else if (destination[0] === currentQueen[0] && destination[1] === currentQueen[1]) {
+        continue;
+
+      } else {
+        possibleMoves.push(destination);
+      }
+    }
+
+    for (var k = 0; k < possibleMoves.length; k++) {
+      // This is where the DECISION BRANCHING happens :)
+      findSolution(currentQueen, possibleMoves[k]);
+    }
     
     return false;     
   };
 
-  findSolution(0);
+/////// This iterates the possible roots of our Decision Tree /////// the beginning of our function
+  for (var i = 0; i < n; i++) { // consider n to be length of first row
 
+
+    //resets the queen counter / start all over again from index +1
+    queenCount = 0;
+
+    //if solution flags to true
+    if (findSolution([0, i])) {
+      break;
+    }
+    
+    //untoggle the queen at the previous ith position
+    board.togglePiece(0, i - 1);
+    
+  }
+
+  //transforms the edited board into an array
   solution = makeMatrix(n, board);  
 
-
   console.log('Single solution for ' + n + ' queens:', JSON.stringify(solution));
+
   return solution;
 };
+
+
+
+
 
 var test = window.findNQueensSolution(4);
 console.log(test);
 
 
+/*
+function is breaking for 3 main reason:
+  it will turn off other queens that are already on the board
+
+  our break function is not working properly
+
+  the first queen isn't untoggled after the first iteration
+*/
+
+
+
 // return the number of nxn chessboards that exist, with n queens placed such that none of them can attack each other
 window.countNQueensSolutions = function(n) {
   var solutionCount = undefined; //fixme
+
+  //there should be one instance of history per branch
+  //if that branch is a valid solution, it should get pushed as the solution array, whichever comes first
+
 
   console.log('Number of solutions for ' + n + ' queens:', solutionCount);
   return solutionCount;
