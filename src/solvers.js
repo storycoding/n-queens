@@ -40,95 +40,132 @@ window.findNRooksSolution = function(n) {
 
 // return the number of nxn chessboards that exist, with n rooks placed such that none of them can attack each other
 window.countNRooksSolutions = function(n) {
-  
-  // Create new board
-
-  // var obj1 that holds 
-  // INNER FUNCTION - will recurse
-    // for n
-      // toggle piece at [0, i];
-      // if (!board.hasAnyRooksConflicts())
-        // innerfunction(n - 1);
-
-    //3
-  // for (var i = 0; i < n; i++) {
-  
-  //   //try one scenario
-  //   for (var j =0; j < n-1; j++) {
-      
-  //     for (var k = 0; k < n-2; k++) {
-        
-  //     }
-  //   }         
-  // }
-
-  // var recurse = function(n, count) {
-  //   // add a solution
-  //   if (n === 1) {
-  //     return;
-  //   }
-
-  //   for (var i = 0; i < n; i++) {
-  //     recurse(n-1, count);
-  //   }
-  // }
-
-// [0][0][0]
-// [0][0][0]
-// [0][0][0]
-
-
-// [1][0][0]  [0][1][0]  [0][0][1]
-
-
-
-// [1][0][0]  [0][1][0]  [0][0][1]
-// [0][1][0]  [1][0][0]  [1][0][0]
-
-// [1][0][0]  [0][1][0]  [0][0][1]
-// [0][1][0]  [1][0][0]  [1][0][0]
-// [0][0][1]  [0][0][1]  [0][1][0]
-
-
-
-// [1][0][0]  [0][1][0]  [0][0][1]
-// [0][0][1]  [0][0][1]  [0][1][0]
-
-// [1][0][0]  [0][1][0]  [0][0][1]
-// [0][0][1]  [0][0][1]  [0][1][0]
-// [0][1][0]  [1][0][0]  [1][0][0]
-
-
 
   var solution = 0; 
 
-  var recurse = function(n) {
+  var solutionCounter = function(n) {
     if (n === 1) {
       solution ++;
       return;
     }
 
     for (var i = 0; i < n; i++) {
-      recurse(n - 1);
+      solutionCounter(n - 1);
     }
   };
   
-  recurse(n);
+  solutionCounter(n);
   
   return solution;
 
 };
-
 
 
 
 // return a matrix (an array of arrays) representing a single nxn chessboard, with n queens placed such that none of them can attack each other
 window.findNQueensSolution = function(n) {
-  var solution = undefined; //fixme
+  var solution;
+
+  var board = new Board({'n': n});
+  var queenCount = 0;
+  
+  var L = [[1, 2], [2, 1], [2, -1], [1, -2], [-2, -1], [-1, -2], [-2, 1], [-1, 2]];
+
+  var lMaker = function(originTuple, i) {
+    var destination = [];
+
+    destination[0] = originTuple[0] + L[i][0];
+    destination[1] = originTuple[1] + L[i][1];
+  
+    return destination;
+  };
+
+
+  //// Main Recursive Function ////
+  var findSolution = function(depth, lastQueen, nextMoveTuple) {
+
+    for (var i = depth; i < n; i++) { // consider n to be length of first row
+      var lastQueen = lastQueen || [0, i];
+
+      var possibleMoves = [];
+
+      // If this is the first Queen
+      if (queenCount === 0) {
+        board.togglePiece(lastQueen[0], lastQueen[1]);
+        queenCount++;
+
+      } else if (queenCount <= n && queenCount > 0) {
+        board.togglePiece(nextMoveTuple[0], nextMoveTuple[1]);
+        queenCount++;
+
+        // if Collision
+        if (board.hasAnyQueensConflicts()) {
+          board.togglePiece(nextMoveTuple[0], nextMoveTuple[1]);
+          queenCount--;
+          return;
+        }
+
+        // lastQueen = [newMoveTuple]
+        lastQueen = nextMoveTuple;
+
+      } else if (queenCount > n) {
+        return true;
+      }
+
+      //// Calculate and save all possible valid moves ////
+      for (var j = 0; j < 8; j++) {
+        var destination = lMaker(lastQueen, j);
+        
+        if ((destination[0] >= n || destination[0] < 0) ||
+             destination[1] >= n || destination[1] < 0) {
+          continue;
+        } else if (destination[0] === lastQueen[0] && destination[1] === lastQueen[1]) {
+          continue;
+        } else {
+          possibleMoves.push(destination);
+        }
+      }
+        //try an L
+          // if destination of L = undefined
+            // continue
+          // else if destination = 1
+            // continue
+          // else if destination = 0
+            // collision test
+              // if true
+                // continue
+              //if false
+                //branch it
+                // toggle the destination (turn it into 1)
+                // find solution on that branch
+
+
+      for (var k = 0; k < possibleMoves.length; k++) {
+        // This is where the DECISION BRANCHING happens :)
+        findSolution(depth + 1, lastQueen, possibleMoves[k]);
+      }
+
+  // push the coordinate tuple to possibleMoves
+      // for amount of solutions available
+        // findSolution(currentQueenTuple, nextMoveTuple)
+    }
+    
+    
+    return false;     
+  };
+
+  findSolution(0);
+
+  solution = makeMatrix(n, board);  
+
 
   console.log('Single solution for ' + n + ' queens:', JSON.stringify(solution));
   return solution;
 };
+
+var test = window.findNQueensSolution(4);
+console.log(test);
+
 
 // return the number of nxn chessboards that exist, with n queens placed such that none of them can attack each other
 window.countNQueensSolutions = function(n) {
@@ -137,3 +174,28 @@ window.countNQueensSolutions = function(n) {
   console.log('Number of solutions for ' + n + ' queens:', solutionCount);
   return solutionCount;
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

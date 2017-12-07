@@ -180,7 +180,7 @@
             //if board[i+1 = undefined]
 
 
-                                            //majorDiagonalColumnIndexAtFirstRow
+                                        //majorDiagonalColumnIndexAtFirstRow
     hasMajorDiagonalConflictAt: function(index) {
       var n = this.get('n');
       
@@ -190,10 +190,10 @@
         var cI = i;
         var onBoard = false;
 
-        while(rI < n && cI < n) {
+        while (rI < n && cI < n) {
           var current = this.get(rI)[cI];
 
-          if(current === 1) {
+          if (current === 1) {
             if (onBoard === false) {
               onBoard = true;
               
@@ -217,7 +217,7 @@
       var n = this.get('n'); // gets value of n a.k.a the size
 
       for (let i = 0; i < n; i++) {
-        if(this.hasMajorDiagonalConflictAt(i)) {
+        if (this.hasMajorDiagonalConflictAt(i)) {
           return true;
         }    
       }
